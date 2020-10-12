@@ -47,12 +47,13 @@ export const strategy = (req, res, next) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        
+      const userData = JSON.parse(decoded.data)
+
       /* eslint-disable no-param-reassign */
       req.token = token;
       req.role = 'app';
-      req.user = JSON.parse(decoded['data'])['username'];
-      req.proxy = decoded['data']['app'] || 'dapplr';
+      req.user = userData.username;
+      req.proxy = userData.app || 'dapplr';
       req.scope = config.authorized_operations;
       req.type = 'signature';
       /* eslint-enable no-param-reassign */
