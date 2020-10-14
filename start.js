@@ -25,8 +25,16 @@ app.use(express.static(join(__dirname, 'public')));
 
 app.use('/api', require('./routes/api').default);
 
+app.get('/status', (req, res) => {
+  res.json({
+    status: "ok",
+    node: process.env.BROADCAST_URL,
+    account: process.env.BROADCASTER_USERNAME
+  })
+});
+
 app.get('/*', (req, res) => {
-  res.redirect(`https://hivesigner.com${req.url}`);
+  res.redirect('https://www.hivesso.com');
 });
 
 app.listen(port, () => {
