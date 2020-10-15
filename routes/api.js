@@ -87,6 +87,9 @@ router.post('/broadcast', authenticate('app'), verifyPermissions, async (req, re
         operation[1].required_posting_auths = [];
       }
     }
+    if (operation[0] === 'comment_options') {
+      operation[1].extensions = [];
+    }
     if (operation[1].__config || operation[1].__rshares) {
       delete operation[1].__config;
       delete operation[1].__rshares;
