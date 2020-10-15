@@ -89,6 +89,10 @@ router.post('/broadcast', authenticate('app'), verifyPermissions, async (req, re
     }
     if (operation[0] === 'comment_options') {
       operation[1].extensions = [];
+      if (operation[1].percent_hbd === undefined) {
+        operation[1].percent_hbd = operation[1].percent_steem_dollars
+      }
+      operation[1].max_accepted_payout.replace("SBD", "HBD")
     }
     if (operation[1].__config || operation[1].__rshares) {
       delete operation[1].__config;
