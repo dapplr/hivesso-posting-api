@@ -111,10 +111,11 @@ router.post('/broadcast', authenticate('app'), verifyPermissions, async (req, re
       error_description: `This access_token allow you to broadcast transaction only for the account @${req.user}`,
     });
   } else {
+    console.log(new Date().toISOString(), `Broadcasted: operations ${operations}`);
     client.broadcast.sendOperations(operations, privateKey)
       .then(
         (result) => {
-          console.log(new Date().toISOString(), `Broadcasted: success for @${req.user} from app @${req.proxy}`);
+          console.log(new Date().toISOString(), `Broadcasted: success for @${req.user} from app @${req.proxy}, res - ${result}`);
           res.json({ result });
         },
         (err) => {
