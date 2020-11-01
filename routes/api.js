@@ -88,7 +88,9 @@ router.post('/broadcast', authenticate('app'), verifyPermissions, async (req, re
       }
     }
     if (operation[0] === 'comment_options') {
-      operation[1].extensions = [];
+      if (operation[1].extensions === undefined) {
+        operation[1].extensions = []
+      }
       if (operation[1].percent_hbd === undefined) {
         operation[1].percent_hbd = operation[1].percent_steem_dollars
       }
