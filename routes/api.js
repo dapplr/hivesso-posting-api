@@ -90,6 +90,16 @@ router.post('/broadcast', authenticate('app'), verifyPermissions, async (req, re
     if (operation[0] === 'comment_options') {
       if (operation[1].extensions === undefined) {
         operation[1].extensions = []
+      } else {
+        operation[1].extensions.forEach((extension) => {
+          if (extension[1].beneficiaries) {
+            extension[1].beneficiaries.sort(function(a, b) {
+              if (a.account < b.account) return -1;
+              if (a.account > b.account) return 1;
+              return 0;
+            });
+          }
+        });
       }
       if (operation[1].percent_hbd === undefined) {
         operation[1].percent_hbd = operation[1].percent_steem_dollars
