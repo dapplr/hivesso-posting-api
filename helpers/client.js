@@ -1,6 +1,15 @@
 import { Client } from '@hiveio/dhive';
 
-const client = new Client(process.env.BROADCAST_URL || 'https://api.hive.blog', { rebrandedApi: true });
+const DEFAULT_SERVER = [
+  'https://api.hive.blog',
+  'https://api.deathwing.me'
+];
+
+const client = new Client(DEFAULT_SERVER, {
+  timeout: 3000,
+  failoverThreshold: 15,
+  consoleOnFailover: true
+});
 
 export default client;
 module.exports = client;
