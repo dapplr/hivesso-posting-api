@@ -1,6 +1,7 @@
 import { Client } from '@hiveio/dhive';
 
 const DEFAULT_SERVER = [
+  process.env.BROADCAST_URL,
   'https://api.hive.blog',
   'https://api.deathwing.me'
 ];
