@@ -24,10 +24,11 @@ app.use(strategy);
 app.use(express.static(join(__dirname, 'public')));
 
 app.use('/api', require('./routes/api').default);
+app.use('/sign_in', require('./routes/sign_in').default);
 
 app.get('/status', (req, res) => {
   res.json({
-    status: "ok",
+    status: 'ok',
     node: process.env.BROADCAST_URL,
     account: process.env.BROADCASTER_USERNAME
   })
