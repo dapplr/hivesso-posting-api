@@ -37,13 +37,14 @@ export const isOperationAuthor = (operation, query, username) => {
   return false;
 };
 
-export const getAppProfile = (username) => new Promise((resolve, reject) => {
-  client.database.getAccounts([username]).then((accounts) => {
+export const getAppProfile = async (username) => {
+  try {
     let metadata;
+    const accounts = await client.database.getAccounts([username]);
     if (accounts[0] && accounts[0].posting_json_metadata) {
       try {
         metadata = JSON.parse(accounts[0].posting_json_metadata);
-        if (!metadata.profile || !metadata.profile.version) {
+        if (!metadata.hive_sso) {
           metadata = {};
         }
       } catch (e) {
@@ -51,25 +52,17 @@ export const getAppProfile = (username) => new Promise((resolve, reject) => {
         metadata = {};
       }
     }
-    // otherwise, fall back to reading from `json_metadata`
-    if (accounts[0] && accounts[0].json_metadata && (!metadata || !metadata.profile)) {
-      try {
-        metadata = JSON.parse(accounts[0].json_metadata);
-      } catch (error) {
-        console.error(`Error parsing account json ${username}`, error); // error in parsing
-        metadata = {};
-      }
-    }
-    if (metadata.profile && metadata.profile.type && metadata.profile.type === 'app') {
-      resolve(metadata.profile);
+
+    if (metadata.hive_sso && metadata.hive_sso.type && metadata.hive_sso.type === 'app') {
+      return { profile: metadata.hive_sso };
     } else {
-      reject(`The account @${username} is not an application`);
+      return { error: `The account @${username} is not an application` };
     }
-  }).catch((e) => {
+  } catch(e) {
     console.log(e);
-    reject(`Failed to load account @${username}`, e);
-  });
-});
+    return { error: `Failed to load account @${username}`};
+  };
+};
 
 const b64uLookup = {
   '/': '_', _: '/', '+': '-', '-': '+', '=': '.', '.': '=',

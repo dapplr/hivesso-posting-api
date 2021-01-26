@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { PrivateKey } from '@hiveio/dhive';
 import { authenticate, verifyPermissions } from '../helpers/middleware';
 import { getErrorMessage, isOperationAuthor } from '../helpers/utils';
-import { issue } from '../helpers/token';
+import { issuePostingCode, issuePostingToken } from '../helpers/token';
 import client from '../helpers/client';
-import { authorized_operations, token_expiration } from '../config.json';
+import { authorized_operations } from '../config.json';
+const { OAuth2Client } = require('google-auth-library'); 
 
 const router = Router();
 const privateKey = PrivateKey.fromString(process.env.BROADCASTER_POSTING_WIF);
@@ -56,8 +57,8 @@ router.all('/me', authenticate(), async (req, res) => {
 });
 
 /** Broadcast transaction */
-router.post('/broadcast', authenticate('app'), verifyPermissions, async (req, res) => {
-  const scope = req.scope.length ? req.scope : authorized_operations;
+router.post('/broadcast', authenticate('posting'), verifyPermissions('posting'), async (req, res) => {
+  const scope = req.scope;
   const { operations } = req.body;
 
   let scopeIsValid = true;
@@ -148,18 +149,48 @@ router.post('/broadcast', authenticate('app'), verifyPermissions, async (req, re
 });
 
 /** Request app access token */
-router.all('/oauth2/token', authenticate(['code', 'refresh']), async (req, res) => {
-  console.log(new Date().toISOString(), client.currentAddress, `Issue tokens for user @${req.user} for @${req.proxy} app.`);
-  res.json({
-    access_token: issue(req.proxy, req.user, 'posting'),
-    refresh_token: issue(req.proxy, req.user, 'refresh'),
-    expires_in: token_expiration,
-    username: req.user,
-  });
+router.post('/oauth2/token', authenticate('code'), verifyPermissions('code'), async (req, res) => {
+  const { params } = req.body;
+  console.log(new Date().toISOString(), `Issue access tokens for user @${req.user} for @${req.proxy} app.`);
+
+  let data = null;
+  if (req.email) {
+    data = await issuePostingToken(req.proxy, req.user, req.email);
+  }
+
+  if (data) {
+    res.json({
+      access_token: data.token,
+      expires_at: data.exp,
+      username: req.user,
+    });
+  } else {
+    res.status(401).json({})
+  }
 });
 
-/** Revoke access token */
-router.all('/oauth2/token/revoke', authenticate('app'), async (req, res) => {
+/** Request app access offline code */
+router.post('/oauth2/code', authenticate('auth'), verifyPermissions('auth'), async (req, res) => {
+  let data = null;
+  console.log(new Date().toISOString(), `Issue access code for user @${req.user} for @${req.proxy} app.`);
+
+  if (req.email) {
+    data = await issuePostingCode(req.proxy, req.user, req.email);
+  }
+
+  if (data) {
+    res.json({
+      code: data.code,
+      expires_at: data.exp,
+      username: req.user,
+    });
+  } else {
+    res.status(401).json({})
+  }
+});
+
+/** Revoke app access offline code */
+router.all('/oauth2/code/revoke', authenticate('auth'), async (req, res) => {
   res.json({ success: true });
 });
 
